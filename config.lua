@@ -6,7 +6,7 @@ Config.TestDriveTime = 60 -- Tijd in seconden voor de testrit
 Config.CurrencySymbol = '€' 
 
 -- Cooldown instellingen
-Config.EnableCooldown = true -- Zet op true om een cooldown tussen testritten in te schakelen
+Config.EnableCooldown = false -- Zet op true om een cooldown tussen testritten in te schakelen
 Config.CooldownTime = 60 -- Tijd in seconden tussen testritten (standaard: 5 minuten)
 
 -- UI instellingen

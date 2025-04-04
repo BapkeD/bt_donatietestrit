@@ -64,69 +64,97 @@ function Vehicles.SpawnDonationVehicles()
     DonationVehicles = {}
     vehicleLocationsCache = {}
     
-    -- Optimaliseer door alle modellen eerst te laden
+    -- Performance optimalisatie: batch model loading en streamingeren
     local modelHashes = {}
+    local modelsToLoad = {}
+    
+    -- Verzamel unieke modellen om te laden (voorkomt dubbele model loads)
     for i, vehConfig in ipairs(Config.DonationVehicles) do
         if i <= #Config.Locations then
-            modelHashes[i] = GetHashKey(vehConfig.model)
-            RequestModel(modelHashes[i])
+            local modelHash = GetHashKey(vehConfig.model)
+            if not modelsToLoad[modelHash] then
+                modelsToLoad[modelHash] = true
+                table.insert(modelHashes, modelHash)
+            end
         end
     end
     
-    -- Wacht tot modellen geladen zijn (max 5 seconden)
-    local timeout = GetGameTimer() + 5000
-    while GetGameTimer() < timeout do
-        local allLoaded = true
-        for i, hash in pairs(modelHashes) do
-            if not HasModelLoaded(hash) then
-                allLoaded = false
+    -- Batch request model loading voor betere streaming performance
+    for _, hash in ipairs(modelHashes) do
+        RequestModel(hash)
+    end
+    
+    -- Meer efficiënte wachtlus - check alleen modellen die daadwerkelijk nodig zijn
+    local startTime = GetGameTimer()
+    local timeout = startTime + 5000
+    
+    Citizen.CreateThread(function()
+        while GetGameTimer() < timeout do
+            local allLoaded = true
+            for _, hash in ipairs(modelHashes) do
+                if not HasModelLoaded(hash) then
+                    allLoaded = false
+                    break
+                end
+            end
+            
+            if allLoaded then
+                -- Spawn de voertuigen allemaal in één batch
+                for i, location in ipairs(Config.Locations) do
+                    if Config.DonationVehicles[i] then
+                        local modelHash = GetHashKey(Config.DonationVehicles[i].model)
+                        
+                        if HasModelLoaded(modelHash) then
+                            -- Spawn het voertuig
+                            local vehicle = CreateVehicle(modelHash, location.Coords.x, location.Coords.y, location.Coords.z, location.Heading, false, false)
+                            
+                            -- Verbeterde entity management voor CPU reductie
+                            SetEntityAsMissionEntity(vehicle, true, true)
+                            SetVehicleDoorsLocked(vehicle, 2)
+                            SetVehicleDirtLevel(vehicle, 0.0)
+                            FreezeEntityPosition(vehicle, true)
+                            SetVehicleNumberPlateText(vehicle, "DONATIE"..i)
+                            
+                            -- Render distance optimalisatie - alleen renderen wanneer nodig
+                            SetEntityDistanceCullingRadius(vehicle, 50.0)
+                            
+                            -- Sla referentie op met modelgegevens
+                            DonationVehicles[i] = {
+                                entity = vehicle,
+                                data = Config.DonationVehicles[i],
+                                location = location
+                            }
+                            
+                            -- Cache de locatie voor snellere toegang
+                            vehicleLocationsCache[vehicle] = {
+                                index = i,
+                                coords = vector3(location.Coords.x, location.Coords.y, location.Coords.z)
+                            }
+                        end
+                    end
+                end
+                
+                -- Free alle modellen na succesvolle spawn
+                for _, hash in ipairs(modelHashes) do
+                    SetModelAsNoLongerNeeded(hash)
+                end
+                
                 break
             end
+            
+            Wait(50)
         end
         
-        if allLoaded then
-            break
-        end
-        
-        Wait(50)
-    end
-    
-    -- Spawn de voertuigen op elke locatie
-    for i, location in ipairs(Config.Locations) do
-        -- Spawn alleen een voertuig als we een model hebben voor deze locatie-index
-        if Config.DonationVehicles[i] and HasModelLoaded(modelHashes[i]) then
-            -- Spawn het voertuig
-            local vehicle = CreateVehicle(modelHashes[i], location.Coords.x, location.Coords.y, location.Coords.z, location.Heading, false, false)
+        -- Timeout fallback - als we hier komen, zijn niet alle modellen geladen
+        if GetGameTimer() >= timeout then
+            print("^3[WARNING] Niet alle voertuigmodellen konden binnen de timeout worden geladen")
             
-            -- Voertuig instellen
-            SetVehicleDoorsLocked(vehicle, 2) -- Vergrendel het voertuig
-            SetVehicleDirtLevel(vehicle, 0.0) -- Maak voertuig schoon
-            FreezeEntityPosition(vehicle, true) -- Voorkom dat het beweegt
-            SetVehicleNumberPlateText(vehicle, "DONATIE"..i)
-            
-            -- Sla referentie op met modelgegevens
-            DonationVehicles[i] = {
-                entity = vehicle,
-                data = Config.DonationVehicles[i],
-                location = location
-            }
-            
-            -- Cache de locatie voor snellere toegang
-            vehicleLocationsCache[vehicle] = {
-                index = i,
-                coords = vector3(location.Coords.x, location.Coords.y, location.Coords.z)
-            }
-        else
-            if not HasModelLoaded(modelHashes[i]) then
-                print("^1ERROR: Model kon niet geladen worden: "..Config.DonationVehicles[i].model)
+            -- Free alle modellen die we geprobeerd hebben te laden
+            for _, hash in ipairs(modelHashes) do
+                SetModelAsNoLongerNeeded(hash)
             end
         end
-    end
-    
-    -- Geef de modellen vrij
-    for _, hash in pairs(modelHashes) do
-        SetModelAsNoLongerNeeded(hash)
-    end
+    end)
 end
 
 -- Get closest donation vehicle - Performance geoptimaliseerde versie

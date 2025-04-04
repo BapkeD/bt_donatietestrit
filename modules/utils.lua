@@ -86,24 +86,29 @@ function Utils.IsPlayerNearPoint(coords, distance)
     local playerCoords = GetEntityCoords(playerPed)
     
     -- Genereer een unieke sleutel voor deze coördinaten en afstand
-    local key = string.format("%.2f,%.2f,%.2f,%d", coords.x, coords.y, coords.z, distance)
+    local key = string.format("%.1f,%.1f,%.1f,%d", coords.x, coords.y, coords.z, distance)
     
-    -- Verwijder oude cache entries (ouder dan 1 seconde)
+    -- Verwijder oude cache entries (ouder dan 500ms voor betere performance)
     local currentTime = GetGameTimer()
     for k, v in pairs(distanceCache) do
-        if (currentTime - v.timestamp) > 1000 then
+        if (currentTime - v.timestamp) > 500 then
             distanceCache[k] = nil
         end
     end
     
     -- Check de cache
-    if distanceCache[key] and (currentTime - distanceCache[key].timestamp) < 1000 then
+    if distanceCache[key] and (currentTime - distanceCache[key].timestamp) < 500 then
         return distanceCache[key].result
     end
     
-    -- Bereken de afstand
-    local dist = #(playerCoords - coords)
-    local result = dist < distance
+    -- Gebruik squared distance voor betere performance (vermijd square root berekening)
+    local dx = playerCoords.x - coords.x
+    local dy = playerCoords.y - coords.y
+    local dz = playerCoords.z - coords.z
+    local squaredDist = dx*dx + dy*dy + dz*dz
+    local squaredRange = distance * distance
+    
+    local result = squaredDist < squaredRange
     
     -- Sla het resultaat op in de cache
     distanceCache[key] = {

@@ -13,7 +13,6 @@ Een FiveM ESX resource die spelers de mogelijkheid geeft om donatiewagens te tes
 ## Kenmerken
 
 - Configureerbare voertuigeigenschappen
-- Cooldown systeem tussen testritten
 - Admin commando's voor beheer van testritten
 - Target systeem ondersteuning (ox_target/qb-target)
 - Anti-exploit beveiliging
@@ -34,7 +33,6 @@ Een FiveM ESX resource die spelers de mogelijkheid geeft om donatiewagens te tes
 Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 
 - Testrit tijdsduur
-- Cooldown tussen testritten
 - Voertuiglijst en informatie
 - Performance optimalisatie niveau
 - Dealer locatie(s)
@@ -51,6 +49,14 @@ Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 - ox_target of qb-target (voor target integratie)
 
 ## Changelog
+
+### v1.2.1
+- Verwijderd: Cooldown systeem tussen testritten
+- Verbeterd: 3D tekst is nu groter en beter zichtbaar
+- Verbeterd: Prestaties door geoptimaliseerde voertuig spawning
+- Verbeterd: Betere performance door geavanceerde caching
+- Verbeterd: Squared distance calculation voor snellere afstandsberekening
+- Verbeterd: Dynamische update intervals voor betere CPU-belasting
 
 ### v1.2.0
 - Verwijderd: UI timer voor drastische prestatieverbetering
@@ -92,8 +98,6 @@ Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 ## Credits
 
 Gemaakt door BTscripts
-
-
 
 ## Licentie
 

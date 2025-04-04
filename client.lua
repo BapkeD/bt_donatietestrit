@@ -220,37 +220,58 @@ Citizen.CreateThread(function()
     
     if Config.UseTarget then return end
     
+    -- Performance optimalisatie: lokale variabelen
+    local isDrawingText = false
+    local lastCheck = 0
+    local checkInterval = 250 -- Minder frequente checks
+    
     while true do
+        -- Dynamische wachttijd voor betere CPU efficiency
         local sleep = 1000
-        local playerPed = PlayerPedId()
         
         if not TestDriveActive then
-            -- Gebruik MCP think om te beslissen of we moeten controleren voor voertuigen
-            local processInteractions = true
+            local currentTime = GetGameTimer()
             
-            -- In hogere optimalisatieniveaus, reduceren we checks op basis van performance
-            if Config.OptimizationLevel >= 3 and performanceStats.frameTime > 16.67 then
-                processInteractions = false
-            end
-            
-            if processInteractions then
-                local playerCoords = GetEntityCoords(playerPed)
-                local closestVehicle, closestIndex, distance = Vehicles.GetClosestDonationVehicle()
+            -- Reduceer update frequentie voor betere performance
+            if currentTime - lastCheck > checkInterval then
+                lastCheck = currentTime
+                local playerPed = PlayerPedId()
+                local processInteractions = true
                 
-                if closestVehicle and closestIndex then
-                    sleep = 0
+                -- In hogere optimalisatieniveaus, reduceren we checks op basis van performance
+                if Config.OptimizationLevel >= 3 and performanceStats.frameTime > 16.67 then
+                    processInteractions = false
+                end
+                
+                if processInteractions then
+                    local playerCoords = GetEntityCoords(playerPed)
+                    local closestVehicle, closestIndex, distance = Vehicles.GetClosestDonationVehicle()
                     
-                    if Utils.IsPlayerNearPoint(GetEntityCoords(closestVehicle), 2.0) then
-                        -- Teken 3D tekst
-                        local pos = GetEntityCoords(closestVehicle)
-                        DrawText3D(pos.x, pos.y, pos.z + 1.0, '[~g~E~w~] Bekijk ' .. Config.DonationVehicles[closestIndex].label)
+                    if closestVehicle and closestIndex and distance < 3.0 then
+                        sleep = 0
                         
-                        -- Controleer input
-                        if IsControlJustReleased(0, 38) then -- E toets
-                            UI.OpenDonationMenu(closestIndex)
+                        if Utils.IsPlayerNearPoint(GetEntityCoords(closestVehicle), 2.0) then
+                            -- Teken 3D tekst
+                            isDrawingText = true
+                            local pos = GetEntityCoords(closestVehicle)
+                            DrawText3D(pos.x, pos.y, pos.z + 1.0, '[~g~E~w~] Bekijk ' .. Config.DonationVehicles[closestIndex].label)
+                            
+                            -- Controleer input
+                            if IsControlJustReleased(0, 38) then -- E toets
+                                UI.OpenDonationMenu(closestIndex)
+                            end
+                        else
+                            isDrawingText = false
                         end
+                    else
+                        isDrawingText = false
                     end
                 end
+            end
+            
+            -- Als we tekst tekenen, houd de loop sneller voor soepele animatie
+            if isDrawingText then
+                sleep = 0
             end
         end
         
@@ -268,7 +289,7 @@ function DrawText3D(x, y, z, text)
         return
     end
 
-    local scale = 0.35 * (1 / dist) * (1 / GetGameplayCamFov()) * 100
+    local scale = 0.70 * (1 / dist) * (1 / GetGameplayCamFov()) * 100
 
     SetTextScale(scale, scale)
     SetTextFont(4)
