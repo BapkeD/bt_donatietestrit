@@ -29,7 +29,6 @@ Een FiveM ESX resource die spelers de mogelijkheid geeft om donatiewagens te tes
 4. Configureer de voertuigen en instellingen in `config.lua`
 5. Herstart je server
 
-<<<<<<< HEAD
 ## Configuratie
 
 Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
@@ -53,6 +52,16 @@ Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 
 ## Changelog
 
+### v1.1.3
+- Opgelost: UI blijft nu verborgen wanneer speler overlijdt tijdens testrit
+- Toegevoegd: Event handler voor speler dood tijdens testrit
+- Verbeterd: Algemene betrouwbaarheid van UI weergave
+
+### v1.1.2
+- Opgelost: UI blijft nu verborgen wanneer de resource herstart of stopt
+- Verbeterd: Betere afhandeling van resource stoppen/herstarten
+- Toegevoegd: Event handler voor resource stop
+
 ### v1.1.1
 - Opgelost: 'os is nil' error in client.lua bij cooldown berekening
 - Opgelost: UI blijft zichtbaar na het verlaten van het voertuig
@@ -75,17 +84,12 @@ Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 
 Gemaakt door BTscripts
 
-## Gecloneerd van
-Deze repository is een kopie van [BTscripts](https://github.com/BTscripts/bt_donatietestrit)
-
-## Screenshots
-![Voertuig Menu](https://i.imgur.com/example1.png)
-![Testrit Timer](https://i.imgur.com/example2.png)
-
 ## Commando's
-=======
->>>>>>> 9eb0cccbeb26eddca6f797710083ec9f32d545e7
 
+- `/endtestdrive` - Beëindig de huidige testrit
+- `/testdrives` - Bekijk alle actieve testritten
+- `/testdrivecooldowns` - Bekijk alle actieve cooldowns
+- `/resetcooldown [ID]` - Reset de cooldown van een speler
 
 ## Licentie
 

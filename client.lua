@@ -22,6 +22,32 @@ exports('getUtils', function() return Utils end)
 exports('getUI', function() return UI end)
 exports('getVehicles', function() return Vehicles end)
 
+-- Resource stop handler (verberg UI als de resource stopt)
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName == GetCurrentResourceName() then
+        if UI and TestDriveActive then
+            UI.HideTestDriveTimer()
+        end
+    end
+end)
+
+-- Player death handler
+AddEventHandler('esx:onPlayerDeath', function(data)
+    if UI and TestDriveActive then
+        Utils.Notify("Je bent overleden. De proefrit wordt beëindigd.", "error")
+        
+        -- Hide UI immediately when player dies
+        UI.HideTestDriveTimer()
+        
+        -- End test drive after a short delay
+        Citizen.SetTimeout(2000, function()
+            if Vehicles and TestDriveActive then
+                Vehicles.EndTestDrive()
+            end
+        end)
+    end
+end)
+
 -- Client-side dependency checks
 local function CheckDependencies()
     local issues = {}
