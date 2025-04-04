@@ -29,6 +29,7 @@ Een FiveM ESX resource die spelers de mogelijkheid geeft om donatiewagens te tes
 4. Configureer de voertuigen en instellingen in `config.lua`
 5. Herstart je server
 
+<<<<<<< HEAD
 ## Configuratie
 
 Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
@@ -82,15 +83,9 @@ Deze repository is een kopie van [BTscripts](https://github.com/BTscripts/bt_don
 ![Testrit Timer](https://i.imgur.com/example2.png)
 
 ## Commando's
+=======
+>>>>>>> 9eb0cccbeb26eddca6f797710083ec9f32d545e7
 
-**Speler Commando's:**
-- `/endtestdrive` - Beëindig je huidige testrit
-
-**Admin Commando's:**
-- `/testdrives` - Bekijk alle actieve testritten
-- `/respawntestcars` - Handmatig alle testritvoertuigen respawnen
-- `/testdrivecooldowns` - Bekijk alle actieve cooldowns
-- `/resetcooldown [ID]` - Reset de cooldown van een speler
 
 ## Licentie
 
