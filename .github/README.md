@@ -2,12 +2,9 @@
 
 Een FiveM ESX resource die spelers de mogelijkheid geeft om donatiewagens te testen met een timer.
 
-## Gecloneerd van
-Deze repository is een kopie van [BTscripts](https://github.com/BTscripts/bt_donatietestrit)
 
-## Screenshots
-![Voertuig Menu](https://i.imgur.com/example1.png)
-![Testrit Timer](https://i.imgur.com/example2.png)
+
+
 
 ## Kenmerken
 
@@ -28,16 +25,7 @@ Deze repository is een kopie van [BTscripts](https://github.com/BTscripts/bt_don
 4. Configureer de voertuigen en instellingen in `config.lua`
 5. Herstart je server
 
-## Commando's
 
-**Speler Commando's:**
-- `/endtestdrive` - Beëindig je huidige testrit
-
-**Admin Commando's:**
-- `/testdrives` - Bekijk alle actieve testritten
-- `/respawntestcars` - Handmatig alle testritvoertuigen respawnen
-- `/testdrivecooldowns` - Bekijk alle actieve cooldowns
-- `/resetcooldown [ID]` - Reset de cooldown van een speler
 
 ## Dependencies
 
