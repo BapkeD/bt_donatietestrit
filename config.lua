@@ -7,7 +7,7 @@ Config.CurrencySymbol = '€'
 
 -- Cooldown instellingen
 Config.EnableCooldown = true -- Zet op true om een cooldown tussen testritten in te schakelen
-Config.CooldownTime = 300 -- Tijd in seconden tussen testritten (standaard: 5 minuten)
+Config.CooldownTime = 60 -- Tijd in seconden tussen testritten (standaard: 5 minuten)
 
 -- UI instellingen
 Config.ShowTimerUI = true -- Toon timer UI tijdens testrit

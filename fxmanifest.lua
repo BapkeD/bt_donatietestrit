@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'BT scripts'
 description 'Donatie Voertuigen Testrit Systeem voor ESX'
-version '1.1.0'
+version '1.1.1'
 
 shared_scripts {
     '@es_extended/imports.lua',

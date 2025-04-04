@@ -259,6 +259,12 @@ function Vehicles.MonitorVehicleExit()
             -- Check if player is still in vehicle
             if not IsPedInVehicle(playerPed, TestDriveVehicle, false) then
                 Utils.Notify("Je bent uit het voertuig gestapt. De proefrit wordt beëindigd.", "error")
+                
+                -- Hide UI immediately when exiting vehicle
+                if UI then
+                    UI.HideTestDriveTimer()
+                end
+                
                 Wait(2000)
                 Vehicles.EndTestDrive()
                 break
@@ -267,6 +273,12 @@ function Vehicles.MonitorVehicleExit()
             -- Check if vehicle is destroyed
             if IsEntityDead(TestDriveVehicle) then
                 Utils.Notify("Het voertuig is beschadigd. De proefrit wordt beëindigd.", "error")
+                
+                -- Hide UI immediately when vehicle is destroyed
+                if UI then
+                    UI.HideTestDriveTimer()
+                end
+                
                 Wait(2000)
                 Vehicles.EndTestDrive()
                 break

@@ -1,7 +1,7 @@
 local ESX = exports['es_extended']:getSharedObject()
 
 -- Versie informatie
-local CurrentVersion = '1.1.0'
+local CurrentVersion = '1.1.1'
 local GithubVersion = nil
 local ResourceName = GetCurrentResourceName()
 
@@ -14,7 +14,7 @@ local PlayerCooldowns = {}
 -- Check for updates from GitHub
 local function CheckVersion()
     -- GitHub versie check URL
-    local url = "https://raw.githubusercontent.com/BTScripts/bt_donatietestrit/main/version.txt"
+    local url = "https://raw.githubusercontent.com/BapkeD/bt_donatietestrit/main/version.txt"
     
     -- Maak een async HTTP request
     PerformHttpRequest(url, function(err, responseText, headers)
@@ -31,7 +31,7 @@ local function CheckVersion()
                 print("^3[" .. ResourceName .. "] UPDATE BESCHIKBAAR!^7")
                 print("^3[" .. ResourceName .. "] Huidige versie: " .. CurrentVersion .. "^7")
                 print("^3[" .. ResourceName .. "] Nieuwe versie: " .. GithubVersion .. "^7")
-                print("^3[" .. ResourceName .. "] Update op: github.com/BTScripts/bt_donatietestrit^7")
+                print("^3[" .. ResourceName .. "] Update op: github.com/BapkeD/bt_donatietestrit^7")
             else
                 print("^2[" .. ResourceName .. "] Versie is up-to-date (" .. CurrentVersion .. ")^7")
             end
@@ -188,8 +188,8 @@ AddEventHandler('donation_testdrive:endTestDrive', function()
             local playerIdentifier = xPlayer.getIdentifier()
             PlayerCooldowns[playerIdentifier] = os.time() + Config.CooldownTime
             
-            -- Sync cooldown naar client
-            TriggerClientEvent('donation_testdrive:syncCooldown', _source, PlayerCooldowns[playerIdentifier])
+            -- Sync cooldown naar client - stuur resterende seconden in plaats van timestamp
+            TriggerClientEvent('donation_testdrive:syncCooldown', _source, Config.CooldownTime)
         end
         
         -- Verwijderen uit actieve testritvoertuigen
@@ -206,7 +206,12 @@ AddEventHandler('donation_testdrive:requestCooldown', function()
     if xPlayer and Config.EnableCooldown then
         local playerIdentifier = xPlayer.getIdentifier()
         if PlayerCooldowns[playerIdentifier] and PlayerCooldowns[playerIdentifier] > os.time() then
-            TriggerClientEvent('donation_testdrive:syncCooldown', _source, PlayerCooldowns[playerIdentifier])
+            -- Stuur resterende seconden in plaats van timestamp
+            local remainingSeconds = PlayerCooldowns[playerIdentifier] - os.time()
+            TriggerClientEvent('donation_testdrive:syncCooldown', _source, remainingSeconds)
+        else
+            -- Geen cooldown
+            TriggerClientEvent('donation_testdrive:syncCooldown', _source, 0)
         end
     end
 end)

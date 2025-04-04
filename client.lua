@@ -119,9 +119,10 @@ end
 
 -- Event handler voor cooldown synchronisatie
 RegisterNetEvent('donation_testdrive:syncCooldown')
-AddEventHandler('donation_testdrive:syncCooldown', function(cooldownTime)
+AddEventHandler('donation_testdrive:syncCooldown', function(remainingSeconds)
     local serverId = GetPlayerServerId(PlayerId())
-    player_cooldowns[serverId] = cooldownTime and GetGameTimer() + ((cooldownTime - os.time()) * 1000) or nil
+    -- Gebruik GetGameTimer in plaats van os.time (niet beschikbaar in client context)
+    player_cooldowns[serverId] = remainingSeconds > 0 and (GetGameTimer() + (remainingSeconds * 1000)) or nil
 end)
 
 -- Hoofdloop voor interactie met de voertuigen (als target systeem niet wordt gebruikt)
