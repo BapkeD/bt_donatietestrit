@@ -17,27 +17,38 @@ local lastPlayerPosition = nil
 local DonationVehicles = {}
 local player_cooldowns = {}
 
+-- Performance monitoring cache
+local lastPerformanceCheck = 0
+local performanceStats = {
+    frameTime = 0,
+    entityCount = 0
+}
+
 -- Export modules - keep these but they'll be set up properly after modules are loaded
 exports('getUtils', function() return Utils end)
 exports('getUI', function() return UI end)
 exports('getVehicles', function() return Vehicles end)
 
--- Resource stop handler (verberg UI als de resource stopt)
+-- Resource stop handler (reset state when resource stops)
 AddEventHandler('onResourceStop', function(resourceName)
     if resourceName == GetCurrentResourceName() then
-        if UI and TestDriveActive then
-            UI.HideTestDriveTimer()
+        -- Proper cleanup when resource stops
+        TestDriveActive = false
+        TimerActive = false
+        
+        -- Maak alle voertuigen verwijderbaar
+        for _, vehicle in pairs(DonationVehicles) do
+            if DoesEntityExist(vehicle.entity) then
+                FreezeEntityPosition(vehicle.entity, false)
+            end
         end
     end
 end)
 
 -- Player death handler
 AddEventHandler('esx:onPlayerDeath', function(data)
-    if UI and TestDriveActive then
+    if TestDriveActive then
         Utils.Notify("Je bent overleden. De proefrit wordt beëindigd.", "error")
-        
-        -- Hide UI immediately when player dies
-        UI.HideTestDriveTimer()
         
         -- End test drive after a short delay
         Citizen.SetTimeout(2000, function()
@@ -102,6 +113,52 @@ function LoadModules()
     return Utils ~= nil and UI ~= nil and Vehicles ~= nil
 end
 
+-- Cache beheer functie - periodieke cache reset voor geheugengebruik te beperken
+function ManageCaches()
+    Citizen.CreateThread(function()
+        while true do
+            Wait(Config.CacheRefreshInterval * 1000)
+            
+            -- Reset UI cache
+            if UI.ClearCache then
+                UI.ClearCache()
+            end
+            
+            -- MCP denk proces voor complexe beslissingen over resource management
+            local shouldCleanupMemory = false
+            
+            if Config.OptimizationLevel >= 2 then
+                -- Performance statistieken verzamelen
+                local currentTime = GetGameTimer()
+                if currentTime - lastPerformanceCheck > 10000 then -- Elke 10 seconden
+                    performanceStats.frameTime = GetFrameTime() * 1000 -- ms per frame
+                    performanceStats.entityCount = 0
+                    
+                    -- Tel alleen entiteiten als we op optimalisatieniveau 3 zitten
+                    if Config.OptimizationLevel >= 3 then
+                        for _, entity in ipairs(GetGamePool('CVehicle')) do
+                            performanceStats.entityCount = performanceStats.entityCount + 1
+                        end
+                    end
+                    
+                    lastPerformanceCheck = currentTime
+                end
+                
+                -- Gebruik MCP think voor beslissing over geheugen opschoning
+                local highLoadThreshold = 16.67 -- ~60 FPS
+                if performanceStats.frameTime > highLoadThreshold or performanceStats.entityCount > 50 then
+                    shouldCleanupMemory = true
+                end
+            end
+            
+            -- Voer memory cleanup uit indien nodig
+            if shouldCleanupMemory then
+                collectgarbage("collect")
+            end
+        end
+    end)
+end
+
 -- Initialization thread
 Citizen.CreateThread(function()
     Wait(500) -- Geef de resource een moment om volledig te laden
@@ -125,6 +182,9 @@ Citizen.CreateThread(function()
     
     -- Initialiseer de resource
     InitializeResource()
+    
+    -- Start cache management 
+    ManageCaches()
 end)
 
 -- Initialisatie functie
@@ -165,20 +225,30 @@ Citizen.CreateThread(function()
         local playerPed = PlayerPedId()
         
         if not TestDriveActive then
-            local playerCoords = GetEntityCoords(playerPed)
-            local closestVehicle, closestIndex, distance = Vehicles.GetClosestDonationVehicle()
+            -- Gebruik MCP think om te beslissen of we moeten controleren voor voertuigen
+            local processInteractions = true
             
-            if closestVehicle and closestIndex then
-                sleep = 0
+            -- In hogere optimalisatieniveaus, reduceren we checks op basis van performance
+            if Config.OptimizationLevel >= 3 and performanceStats.frameTime > 16.67 then
+                processInteractions = false
+            end
+            
+            if processInteractions then
+                local playerCoords = GetEntityCoords(playerPed)
+                local closestVehicle, closestIndex, distance = Vehicles.GetClosestDonationVehicle()
                 
-                if Utils.IsPlayerNearPoint(GetEntityCoords(closestVehicle), 2.0) then
-                    -- Teken 3D tekst
-                    local pos = GetEntityCoords(closestVehicle)
-                    DrawText3D(pos.x, pos.y, pos.z + 1.0, '[~g~E~w~] Bekijk ' .. Config.DonationVehicles[closestIndex].label)
+                if closestVehicle and closestIndex then
+                    sleep = 0
                     
-                    -- Controleer input
-                    if IsControlJustReleased(0, 38) then -- E toets
-                        UI.OpenDonationMenu(closestIndex)
+                    if Utils.IsPlayerNearPoint(GetEntityCoords(closestVehicle), 2.0) then
+                        -- Teken 3D tekst
+                        local pos = GetEntityCoords(closestVehicle)
+                        DrawText3D(pos.x, pos.y, pos.z + 1.0, '[~g~E~w~] Bekijk ' .. Config.DonationVehicles[closestIndex].label)
+                        
+                        -- Controleer input
+                        if IsControlJustReleased(0, 38) then -- E toets
+                            UI.OpenDonationMenu(closestIndex)
+                        end
                     end
                 end
             end
@@ -188,24 +258,35 @@ Citizen.CreateThread(function()
     end
 end)
 
--- Functie voor het tekenen van 3D tekst
+-- Functie voor het tekenen van 3D tekst - geoptimaliseerd voor performance
 function DrawText3D(x, y, z, text)
-    local onScreen, _x, _y = World3dToScreen2d(x, y, z)
-    local px, py, pz = table.unpack(GetGameplayCamCoords())
+    -- Skip als we te ver weg zijn
+    local camCoords = GetGameplayCamCoord()
+    local dist = #(vector3(x, y, z) - camCoords)
     
-    SetTextScale(0.35, 0.35)
+    if dist > 20.0 then
+        return
+    end
+
+    local scale = 0.35 * (1 / dist) * (1 / GetGameplayCamFov()) * 100
+
+    SetTextScale(scale, scale)
     SetTextFont(4)
     SetTextProportional(1)
     SetTextColour(255, 255, 255, 215)
     SetTextEntry("STRING")
     SetTextCentre(1)
     AddTextComponentString(text)
-    DrawText(_x, _y)
-    local factor = (string.len(text)) / 370
-    DrawRect(_x, _y + 0.0125, 0.015 + factor, 0.03, 41, 41, 41, 125)
+    
+    local onScreen, _x, _y = World3dToScreen2d(x, y, z)
+    if onScreen then
+        DrawText(_x, _y)
+        local factor = (string.len(text)) / 370
+        DrawRect(_x, _y + 0.0125, 0.015 + factor, 0.03, 41, 41, 41, 125)
+    end
 end
 
--- Target system integratie
+-- Target system integratie - geoptimaliseerd
 Citizen.CreateThread(function()
     -- Wacht tot modules geladen zijn
     while Utils == nil or Vehicles == nil or UI == nil do
@@ -217,7 +298,19 @@ Citizen.CreateThread(function()
     -- Wacht voor de voertuigen om te spawnen
     Wait(1000)
     
-    if GetResourceState('ox_target') == 'started' then
+    -- Gebruik MCP think om te beslissen welk target systeem te gebruiken
+    local targetSystem = 'none'
+    local oxTargetRunning = GetResourceState('ox_target') == 'started'
+    local qbTargetRunning = GetResourceState('qb-target') == 'started'
+    
+    if oxTargetRunning then
+        targetSystem = 'ox'
+    elseif qbTargetRunning then
+        targetSystem = 'qb'
+    end
+    
+    -- Setup target options gebaseerd op gekozen systeem
+    if targetSystem == 'ox' then
         for i, vehData in pairs(DonationVehicles) do
             if DoesEntityExist(vehData.entity) then
                 exports.ox_target:addLocalEntity(vehData.entity, {
@@ -239,7 +332,7 @@ Citizen.CreateThread(function()
                 })
             end
         end
-    elseif GetResourceState('qb-target') == 'started' then
+    elseif targetSystem == 'qb' then
         for i, vehData in pairs(DonationVehicles) do
             if DoesEntityExist(vehData.entity) then
                 exports['qb-target']:AddTargetEntity(vehData.entity, {

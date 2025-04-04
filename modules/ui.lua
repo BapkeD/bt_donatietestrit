@@ -5,6 +5,9 @@ local UI = {}
 local Utils = nil
 local Vehicles = nil
 
+-- Vehicle info cache om herhaalde berekeningen te vermijden
+local vehicleInfoCache = {}
+
 -- Add initialization function that takes both utils and vehicles modules
 function UI.Init(utilsModule, vehiclesModule)
     Utils = utilsModule
@@ -12,25 +15,34 @@ function UI.Init(utilsModule, vehiclesModule)
     return UI
 end
 
--- Functie om voertuiginformatie te formatteren
+-- Functie om voertuiginformatie te formatteren - met caching
 function UI.GetVehicleInfo(data)
-    local vehInfo = {}
+    if not data or not data.model then return {} end
     
-    if data and data.model then
-        local vehicle = GetHashKey(data.model)
-        
-        vehInfo.name = data.label
-        vehInfo.brand = GetLabelText(GetMakeNameFromVehicleModel(vehicle))
-        vehInfo.model = GetLabelText(GetDisplayNameFromVehicleModel(vehicle))
-        vehInfo.price = data.price
-        vehInfo.formattedPrice = Config.CurrencySymbol .. Utils.FormatNumber(data.price)
-        vehInfo.category = data.category
-        vehInfo.topspeed = math.ceil((GetVehicleModelEstimatedMaxSpeed(vehicle) * 3.6)) -- Omzetten naar km/u
-        vehInfo.acceleration = GetVehicleModelAcceleration(vehicle) * 10
-        vehInfo.braking = GetVehicleModelMaxBraking(vehicle) * 10
-        vehInfo.traction = GetVehicleModelMaxTraction(vehicle) * 10
-        vehInfo.description = data.description
+    -- Check de cache eerst
+    local cacheKey = data.model
+    if vehicleInfoCache[cacheKey] then
+        return vehicleInfoCache[cacheKey]
     end
+    
+    -- Als niet in cache, bereken de informatie
+    local vehInfo = {}
+    local vehicle = GetHashKey(data.model)
+    
+    vehInfo.name = data.label
+    vehInfo.brand = GetLabelText(GetMakeNameFromVehicleModel(vehicle))
+    vehInfo.model = GetLabelText(GetDisplayNameFromVehicleModel(vehicle))
+    vehInfo.price = data.price
+    vehInfo.formattedPrice = Config.CurrencySymbol .. Utils.FormatNumber(data.price)
+    vehInfo.category = data.category
+    vehInfo.topspeed = math.ceil((GetVehicleModelEstimatedMaxSpeed(vehicle) * 3.6)) -- Omzetten naar km/u
+    vehInfo.acceleration = GetVehicleModelAcceleration(vehicle) * 10
+    vehInfo.braking = GetVehicleModelMaxBraking(vehicle) * 10
+    vehInfo.traction = GetVehicleModelMaxTraction(vehicle) * 10
+    vehInfo.description = data.description
+    
+    -- Sla op in cache voor toekomstig gebruik
+    vehicleInfoCache[cacheKey] = vehInfo
     
     return vehInfo
 end
@@ -154,24 +166,19 @@ function UI.OpenDonationMenu(vehicleIndex)
     end
 end
 
--- Toon testrit timer op het scherm
+-- Dummy functies die niets doen - deze zijn volledig verwijderd van de UI-functionaliteit
+-- Behouden voor backward compatibility
 function UI.DisplayTestDriveTimer(timeLeft)
-    if Config.ShowTimerUI then
-        SendNUIMessage({
-            action = 'showTimer',
-            time = timeLeft,
-            maxTime = Config.TestDriveTime
-        })
-    end
+    -- Timer UI verwijderd voor performance verbetering
 end
 
--- Verberg testrit timer
 function UI.HideTestDriveTimer()
-    if Config.ShowTimerUI then
-        SendNUIMessage({
-            action = 'hideTimer'
-        })
-    end
+    -- Timer UI verwijderd voor performance verbetering
+end
+
+-- Vehicle cache leegmaken wanneer nodig
+function UI.ClearCache()
+    vehicleInfoCache = {}
 end
 
 -- Return module

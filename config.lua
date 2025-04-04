@@ -10,7 +10,7 @@ Config.EnableCooldown = true -- Zet op true om een cooldown tussen testritten in
 Config.CooldownTime = 60 -- Tijd in seconden tussen testritten (standaard: 5 minuten)
 
 -- UI instellingen
-Config.ShowTimerUI = true -- Toon timer UI tijdens testrit
+-- Timer UI is verwijderd in v1.2.0 voor drastische performance verbetering
 Config.NotificationType = 'esx' -- 'esx', 'mythic', 'ox_lib', 'custom'
 
 -- Blip instellingen
@@ -43,6 +43,10 @@ Config.Locations = {
 
 -- Retourneer punt bij het verlaten van het voertuig
 Config.ReturnPoint = vector3(-214.4155, -1950.0284, 27.2067)
+
+-- Performance instellingen
+Config.OptimizationLevel = 2 -- 1 = basis, 2 = gemiddeld, 3 = maximaal
+Config.CacheRefreshInterval = 30 -- Seconden tussen cache verversingen
 
 -- Marker instellingen (alleen gebruikt als UseTarget false is)
 Config.Marker = {

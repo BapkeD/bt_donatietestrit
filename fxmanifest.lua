@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'BT scripts'
 description 'Donatie Voertuigen Testrit Systeem voor ESX'
-version '1.1.3'
+version '1.2.0'
 
 shared_scripts {
     '@es_extended/imports.lua',
@@ -28,11 +28,3 @@ dependencies {
     'ox_lib'
 }
 
-ui_page 'html/index.html'
-
-files {
-    'html/index.html',
-    'html/style.css',
-    'html/script.js',
-    'html/img/*.png'
-} 

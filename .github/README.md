@@ -12,12 +12,12 @@ Een FiveM ESX resource die spelers de mogelijkheid geeft om donatiewagens te tes
 
 ## Kenmerken
 
-- Verbeterde UI met realtime timer weergave tijdens testritten
-- Cooldown systeem tussen testritten
 - Configureerbare voertuigeigenschappen
+- Cooldown systeem tussen testritten
 - Admin commando's voor beheer van testritten
 - Target systeem ondersteuning (ox_target/qb-target)
 - Anti-exploit beveiliging
+- Intelligente geheugenbeheer en caching
 - Geoptimaliseerde performance
 - Uitgebreide documentatie
 
@@ -36,7 +36,7 @@ Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 - Testrit tijdsduur
 - Cooldown tussen testritten
 - Voertuiglijst en informatie
-- UI instellingen
+- Performance optimalisatie niveau
 - Dealer locatie(s)
 - Target integratie configuratie
 - Aangepaste voertuigeigenschappen
@@ -51,6 +51,15 @@ Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 - ox_target of qb-target (voor target integratie)
 
 ## Changelog
+
+### v1.2.0
+- Verwijderd: UI timer voor drastische prestatieverbetering
+- Toegevoegd: Intelligente caching voor voertuiggegevens
+- Toegevoegd: Performance monitoring en optimalisatie
+- Toegevoegd: Adaptieve resource management
+- Geoptimaliseerd: Voertuig spawning en model laden
+- Geoptimaliseerd: 3D tekst rendering
+- Verbeterd: Geheugengebruik en resource cleanup
 
 ### v1.1.3
 - Opgelost: UI blijft nu verborgen wanneer speler overlijdt tijdens testrit
