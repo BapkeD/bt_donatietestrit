@@ -93,12 +93,7 @@ Je kunt de volgende instellingen aanpassen in het `config.lua` bestand:
 
 Gemaakt door BTscripts
 
-## Commando's
 
-- `/endtestdrive` - Beëindig de huidige testrit
-- `/testdrives` - Bekijk alle actieve testritten
-- `/testdrivecooldowns` - Bekijk alle actieve cooldowns
-- `/resetcooldown [ID]` - Reset de cooldown van een speler
 
 ## Licentie
 

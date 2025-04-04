@@ -1,7 +1,7 @@
 local ESX = exports['es_extended']:getSharedObject()
 
 -- Versie informatie
-local CurrentVersion = '1.1.3'
+local CurrentVersion = '1.2.0'
 local GithubVersion = nil
 local ResourceName = GetCurrentResourceName()
 
